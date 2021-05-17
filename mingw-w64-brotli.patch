@@ -1,5 +1,5 @@
 diff --git a/mingw-w64-brotli/PKGBUILD b/mingw-w64-brotli/PKGBUILD
-index c6dd7709b..9aade8a1e 100644
+index c6dd7709b..735303f5d 100644
 --- a/mingw-w64-brotli/PKGBUILD
 +++ b/mingw-w64-brotli/PKGBUILD
 @@ -2,9 +2,7 @@
@@ -36,7 +36,7 @@ index c6dd7709b..9aade8a1e 100644
        ../${_realname}-${pkgver}
  
    cmake --build .
-@@ -58,46 +50,10 @@ check() {
+@@ -58,46 +50,16 @@ check() {
    cmake --build . --target test
  }
  
@@ -47,7 +47,7 @@ index c6dd7709b..9aade8a1e 100644
    DESTDIR="${pkgdir}" cmake --build . --target install
  
    install -D -m644 "${srcdir}"/brotli-${pkgver}/LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
- }
+-}
 -
 -package_python-brotli() {
 -  depends=("${MINGW_PACKAGE_PREFIX}-python" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
@@ -60,7 +60,7 @@ index c6dd7709b..9aade8a1e 100644
 -  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
 -  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
 -    --root="${pkgdir}" --optimize=1 --skip-build
--
+ 
 -  install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/COPYING"
 -
 -}
@@ -72,7 +72,12 @@ index c6dd7709b..9aade8a1e 100644
 -  install -dm755 "${pkgdir}${MINGW_PREFIX}/share/brotli"
 -  cp -a tests/testdata "$pkgdir${MINGW_PREFIX}/share/brotli/"
 -  install -D -m644 "${srcdir}"/brotli-${pkgver}/LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-testdata/LICENSE"
--}
++  # Copy file to let CXX to find this shit library.
++  cd "${pkgdir}${MINGW_PREFIX}/lib"
++  cp libbrotlicommon-static.a libbrotlicommon.a
++  cp libbrotlidec-static.a libbrotlidec.a
++  cp libbrotlienc-static.a libbrotlienc.a
+ }
 -
 -# template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
 -# vim: set ft=bash :
