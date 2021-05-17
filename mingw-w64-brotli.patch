@@ -1,0 +1,86 @@
+diff --git a/mingw-w64-brotli/PKGBUILD b/mingw-w64-brotli/PKGBUILD
+index c6dd7709b..9aade8a1e 100644
+--- a/mingw-w64-brotli/PKGBUILD
++++ b/mingw-w64-brotli/PKGBUILD
+@@ -2,9 +2,7 @@
+ 
+ _realname=brotli
+ pkgbase=mingw-w64-${_realname}
+-pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}"
+-         "${MINGW_PACKAGE_PREFIX}-python-${_realname}"
+-         "${MINGW_PACKAGE_PREFIX}-brotli-testdata")
++pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+ pkgver=1.0.9
+ pkgrel=2
+ pkgdesc="Brotli compression library (mingw-w64)"
+@@ -34,19 +32,13 @@ build() {
+   [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+   mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+ 
+-  declare -a extra_config
+-  if check_option "debug" "n"; then
+-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+-  else
+-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+-  fi
+-
+   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+     ${MINGW_PREFIX}/bin/cmake \
+       -GNinja \
+       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+-      "${extra_config[@]}" \
+-      -DBUILD_{SHARED,STATIC}_LIBS=ON \
++      -DCMAKE_BUILD_TYPE=Release \
++      -DBUILD_STATIC_LIBS=ON \
++      -DBUILD_SHARED_LIBS=OFF \
+       ../${_realname}-${pkgver}
+ 
+   cmake --build .
+@@ -58,46 +50,10 @@ check() {
+   cmake --build . --target test
+ }
+ 
+-package_brotli() {
++package() {
+   cd "${srcdir}"/build-${CARCH}
+ 
+   DESTDIR="${pkgdir}" cmake --build . --target install
+ 
+   install -D -m644 "${srcdir}"/brotli-${pkgver}/LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
+ }
+-
+-package_python-brotli() {
+-  depends=("${MINGW_PACKAGE_PREFIX}-python" "${MINGW_PACKAGE_PREFIX}-libwinpthread-git")
+-  provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
+-  conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
+-  replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
+-
+-  cd "${srcdir}/${_realname}-${pkgver}"
+-
+-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
+-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
+-    --root="${pkgdir}" --optimize=1 --skip-build
+-
+-  install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/COPYING"
+-
+-}
+-
+-package_brotli-testdata() {
+-  depends=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+-
+-  cd brotli-${pkgver}
+-  install -dm755 "${pkgdir}${MINGW_PREFIX}/share/brotli"
+-  cp -a tests/testdata "$pkgdir${MINGW_PREFIX}/share/brotli/"
+-  install -D -m644 "${srcdir}"/brotli-${pkgver}/LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}-testdata/LICENSE"
+-}
+-
+-# template start; name=mingw-w64-splitpkg-wrappers; version=1.0;
+-# vim: set ft=bash :
+-
+-# generate wrappers
+-for _name in "${pkgname[@]}"; do
+-  _short="package_${_name#${MINGW_PACKAGE_PREFIX}-}"
+-  _func="$(declare -f "${_short}")"
+-  eval "${_func/#${_short}/package_${_name}}"
+-done
+-# template end;
